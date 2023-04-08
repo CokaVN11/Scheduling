@@ -16,7 +16,6 @@ void read_file(string path, int &type, int &q, process_queue &pq)
         p.id = i + 1;
         file >> p.arrival;
         p.init = p.arrival;
-        p.cpu_prior = cpu_prior;
 
         string tmp;
         file.ignore();

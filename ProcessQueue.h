@@ -5,13 +5,7 @@
 
 class ProcessQueue{
 private:
-    struct Node {
-        process value;
-        Node* next = nullptr;
-    };
-
-    Node* head;
-    Node* tail;
+    deque<process> process_queue;
     int size = 0;
 
     void push_cpu_prior(const process& p);

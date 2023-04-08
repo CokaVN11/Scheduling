@@ -17,18 +17,11 @@ public :
     int init;
     vector<int> cpu;
     vector<int> resource;
-    int waiting_time;
-    int turnaround_time;
     bool need_cpu;
-
-    // true: cpu time is a priority when comparing
-    bool cpu_prior = false;
 
     process() {
         id = 0;
         arrival = 0;
-        waiting_time = 0;
-        turnaround_time = 0;
         need_cpu = true;
     }
 
@@ -39,10 +32,7 @@ public :
         init = p.init;
         cpu = p.cpu;
         resource = p.resource;
-        waiting_time = p.waiting_time;
-        turnaround_time = p.turnaround_time;
         need_cpu = p.need_cpu;
-        cpu_prior = p.cpu_prior;
     }
 
     friend bool operator<(const process& a, const process& b) {

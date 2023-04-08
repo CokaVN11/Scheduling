@@ -2,30 +2,22 @@
 
 void ProcessQueue::push_cpu_prior(const process& p)
 {
-    if (head == nullptr) {
-        head = new Node{p};
-        tail = head;
+    if (process_queue.empty()) {
+        process_queue.push_back(p);
         ++size;
         return;
     }
 
-    if (head->value.cpu.empty() || p.cpu[0] < head->value.cpu[0]) {
-        Node* temp = new Node{p};
-        temp->next = head;
-        head = temp;
+    if (process_queue.front().cpu.empty() || p.cpu[0] < process_queue.front().cpu[0]) {
+        process_queue.push_front(p);
     }
-    else if (!tail->value.cpu.empty() && p.cpu[0] >= tail->value.cpu[0]) {
-        Node* temp = new Node{p};
-        tail->next = temp;
-        tail = temp;
+    else if (!process_queue.back().cpu.empty() && p.cpu[0] >= process_queue.back().cpu[0]) {
+        process_queue.push_back(p);
     }
     else {
-        for (Node* cur = head; cur->next != nullptr; cur = cur->next) {
-            Node* following = cur->next;
-            if (following->value.cpu.empty() || p.cpu[0] <= following->value.cpu[0]) {
-                Node* temp = new Node{p};
-                temp->next = following;
-                cur->next = temp;
+        for (int i = 0; i < size; ++i) {
+            if (process_queue[i].cpu.empty() || p.cpu[0] <= process_queue[i].cpu[0]) {
+                process_queue.insert(process_queue.begin() + i, p);
                 break;
             }
         }
@@ -36,30 +28,22 @@ void ProcessQueue::push_cpu_prior(const process& p)
 
 void ProcessQueue::push_arrival_prior(const process& p)
 {
-    if (head == nullptr) {
-        head = new Node{p};
-        tail = head;
+    if (process_queue.empty()) {
+        process_queue.push_back(p);
         ++size;
         return;
     }
 
-    if (p.arrival <= head->value.arrival) {
-        Node* temp = new Node{p};
-        temp->next = head;
-        head = temp;
+    if (p.arrival <= process_queue.front().arrival) {
+        process_queue.push_front(p);
     }
-    else if (p.arrival >= tail->value.arrival) {
-        Node* temp = new Node{p};
-        tail->next = temp;
-        tail = temp;
+    else if (p.arrival >= process_queue.back().arrival) {
+        process_queue.push_back(p);
     }
     else {
-        for (Node* cur = head; cur->next != nullptr; cur = cur->next) {
-            Node* following = cur->next;
-            if (p.arrival < following->value.arrival) {
-                Node* temp = new Node{p};
-                temp->next = following;
-                cur->next = temp;
+        for (int i = 0; i < size; ++i) {
+            if (p.arrival <= process_queue[i].arrival) {
+                process_queue.insert(process_queue.begin() + i, p);
                 break;
             }
         }
@@ -68,18 +52,13 @@ void ProcessQueue::push_arrival_prior(const process& p)
 }
 
 ProcessQueue::ProcessQueue()
-    : head(nullptr), tail(nullptr), size(0)
+    : size(0)
 {
 }
 
 ProcessQueue::~ProcessQueue()
 {
-    while (head) {
-        Node* temp = head;
-        head = head->next;
-        delete temp;
-    }
-    head = tail = nullptr;
+    process_queue.clear();
     size = 0;
 }
 
@@ -93,28 +72,25 @@ void ProcessQueue::push(const process& p, bool cpu_prior)
 
 process ProcessQueue::top()
 {
-    return head->value;
+    return process_queue.front();
 }
 
 void ProcessQueue::pop()
 {
-    if (head) {
-        Node* temp = head;
-        head = head->next;
-        if (head == nullptr)
-            tail = nullptr;
-        delete temp;
-    }
+    if (size == 0)
+        return;
+    process_queue.pop_front();
     --size;
 }
 
 bool ProcessQueue::empty()
 {
-    return (head == nullptr || tail == nullptr);
+    return (size == 0 || process_queue.empty());
 }
 
 void ProcessQueue::print()
 {
-    for (Node* cur = head; cur; cur = cur->next)
-        cout << cur->value << "\n";
+    for (auto i : process_queue) {
+        cout << i << "\n";
+    }
 }
