@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${fileDirname}\\main.exe",
             "args": [
-                "input.txt",
+                "input_sjf.txt",
                 "output.txt"
             ],
             "stopAtEntry": false,

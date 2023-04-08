@@ -2,14 +2,12 @@
 
 Scheduler::Scheduler()
 	: type(0), q(0)
-{
-}
+{}
 
 Scheduler::Scheduler(const string& input_path, const string& output_path)
 	: input_path(std::move(input_path)), output_path(std::move(output_path)), type(0), q(0)
-{
+{}
 
-}
 void Scheduler::set_input(const string& input_path)
 {
 	this->input_path = std::move(input_path);
@@ -68,49 +66,31 @@ void Scheduler::fcfs()
     while (!pq.empty())
     {
         process p = pq.top();
+        pq.pop();
 
+        if (p.cpu.empty() && p.resource.empty()) continue;
         if (p.need_cpu)
         {
-            pq.pop();
-            if (p.cpu.empty()) continue;
             if (p.arrival > cpu_time)
             {
-                for (int i = 0; i < p.arrival - cpu_time; ++i)
-                    cpu_gantt.push_back(-1);
+                for (int i = 0; i < p.arrival - cpu_time; ++i) cpu_gantt.push_back(-1);
                 cpu_time = p.arrival;
             }
-
             wt[p.id - 1] += abs(cpu_time - p.arrival);
-            for (int i = 0; i < p.cpu[0]; ++i)
-                cpu_gantt.push_back(p.id);
+
+            for (int i = 0; i < p.cpu[0]; ++i) cpu_gantt.push_back(p.id);
             cpu_time += p.cpu[0];
             tt[p.id - 1] += cpu_time - p.arrival;
+
             p.cpu.erase(p.cpu.begin());
-            p.arrival = cpu_time;
             p.need_cpu = false;
-            pq.push(p);
+
+            p.arrival = cpu_time;
+
         }
         else
-        {
-            pq.pop();
-            if (p.resource.empty()) continue;
-            if (p.arrival > resource_time)
-            {
-                for (int i = 0; i < p.arrival - resource_time; ++i)
-                    resource_gantt.push_back(-1);
-                resource_time = p.arrival;
-            }
-
-            for (int i = 0; i < p.resource[0]; ++i)
-                resource_gantt.push_back(p.id);
-            resource_time += p.resource[0];
-            tt[p.id - 1] += resource_time - p.arrival;
-            p.resource.erase(p.resource.begin());
-            p.arrival = resource_time;
-            p.need_cpu = true;
-
-            pq.push(p);
-        }
+            resource_schedule(p, resource_time);
+        pq.push(p);
     }
 }
 
@@ -123,54 +103,39 @@ void Scheduler::rr()
     while (!pq.empty())
     {
         process p = pq.top();
+        pq.pop();
 
+        if (p.cpu.empty() && p.resource.empty()) continue;
         if (p.need_cpu)
         {
-            pq.pop();
-            if (p.cpu.empty()) continue;
             if (p.arrival > cpu_time)
             {
                 for (int i = 0; i < p.arrival - cpu_time; ++i)
                     cpu_gantt.push_back(-1);
                 cpu_time = p.arrival;
             }
-
             wt[p.id - 1] += abs(cpu_time - p.arrival);
+
+            // process time is the minimum of the cpu burst time and quantumn
             int process_time = min(p.cpu[0], q);
-            for (int i = 0; i < process_time; ++i)
-                cpu_gantt.push_back(p.id);
+            for (int i = 0; i < process_time; ++i) cpu_gantt.push_back(p.id);
             cpu_time += process_time;
             tt[p.id - 1] += cpu_time - p.arrival;
+
             p.cpu[0] -= process_time;
+            // if the process is not finished,
+            // but quantumn for it end push it back to the queue
             if (p.cpu[0] == 0)
             {
                 p.cpu.erase(p.cpu.begin());
                 p.need_cpu = false;
             }
             p.arrival = cpu_time;
-            pq.push(p);
         }
         else
-        {
-            pq.pop();
-            if (p.resource.empty()) continue;
-            if (p.arrival > resource_time)
-            {
-                for (int i = 0; i < p.arrival - resource_time; ++i)
-                    resource_gantt.push_back(-1);
-                resource_time = p.arrival;
-            }
+            resource_schedule(p, resource_time);
 
-            for (int i = 0; i < p.resource[0]; ++i)
-                resource_gantt.push_back(p.id);
-            resource_time += p.resource[0];
-            tt[p.id - 1] += resource_time - p.arrival;
-            p.resource.erase(p.resource.begin());
-            p.arrival = resource_time;
-            p.need_cpu = true;
-
-            pq.push(p);
-        }
+        pq.push(p);
     }
 }
 
@@ -179,7 +144,6 @@ void Scheduler::sjf()
 	cout << "SJF running...\n";
     int cpu_time = 0;
     int resource_time = 0;
-
 
     priority_queue<process, vector<process>, std::function<bool(const process&, const process&)>> ready_queue(process::cpu_cmp);
 
@@ -244,6 +208,57 @@ void Scheduler::sjf()
             pq.push(p);
         }
     }
+}
+
+void Scheduler::sjf_upgrade()
+{
+    int cpu_time = 0;
+    int resource_time = 0;
+
+    while (!pq.empty())
+    {
+        // preprocess the process
+        while (!pq.empty() && cpu_time > pq.top().arrival)
+        {
+            process p = pq.top();
+            int best = p.id;
+            if (!p.need_cpu) break;
+            pq.pop();
+            pq.push(p, true);
+            // after preprocess, if the id of top still the same, then it is the best process -> break
+            if (best == pq.top().id) break;
+        }
+        process p = pq.top();
+        pq.pop();
+
+        if (p.cpu.empty() && p.resource.empty()) continue;
+        if (p.need_cpu)
+        {
+            if (p.arrival > cpu_time)
+            {
+                for (int i = 0; i < p.arrival - cpu_time; ++i)
+                    cpu_gantt.push_back(-1);
+                cpu_time = p.arrival;
+            }
+            wt[p.id - 1] += abs(cpu_time - p.arrival);
+
+            for (int i = 0; i < p.cpu[0]; ++i) cpu_gantt.push_back(p.id);
+            cpu_time += p.cpu[0];
+            tt[p.id - 1] += cpu_time - p.arrival;
+
+            p.cpu.erase(p.cpu.begin());
+            p.need_cpu = false;
+
+            p.arrival = cpu_time;
+
+        }
+        else
+        {
+            resource_schedule(p, resource_time);
+        }
+        pq.push(p);
+    }
+
 }
 
 void Scheduler::srtn()
@@ -323,6 +338,77 @@ void Scheduler::srtn()
     }
 }
 
+void Scheduler::srtn_upgrade()
+{
+    cout << "SRTN running...\n";
+    int cpu_time = 0;
+    int resource_time = 0;
+
+    while (!pq.empty())
+    {
+        // preprocess the process
+        while (!pq.empty() && cpu_time > pq.top().arrival)
+        {
+            process p = pq.top();
+            int best = p.id;
+            if (!p.need_cpu) break;
+            pq.pop();
+            pq.push(p, true);
+            // after preprocess, if the id of top still the same, then it is the best process -> break
+            if (best == pq.top().id) break;
+        }
+        process p = pq.top();
+        pq.pop();
+
+        if (p.cpu.empty() && p.resource.empty()) continue;
+        if (p.need_cpu)
+        {
+            if (p.arrival > cpu_time)
+            {
+                for (int i = 0; i < p.arrival - cpu_time; ++i)
+                    cpu_gantt.push_back(-1);
+                cpu_time = p.arrival;
+            }
+            wt[p.id - 1] += abs(cpu_time - p.arrival);
+
+            cpu_gantt.push_back(p.id);
+            ++cpu_time;
+            tt[p.id - 1] += cpu_time - p.arrival;
+
+            p.arrival = cpu_time;
+            if (p.cpu[0] > 1)
+                --p.cpu[0];
+            else
+            {
+                p.cpu.erase(p.cpu.begin());
+                p.need_cpu = false;
+            }
+        }
+        else
+            resource_schedule(p, resource_time);
+        pq.push(p);
+    }
+}
+
+void Scheduler::resource_schedule(process& p, int& time)
+{
+    if (p.resource.empty()) return;
+
+    if (p.arrival > time)
+    {
+        for (int i = 0; i < p.arrival - time; ++i)
+            resource_gantt.push_back(-1);
+        time = p.arrival;
+    }
+    for (int i = 0; i < p.resource[0]; ++i)
+        resource_gantt.push_back(p.id);
+    time += p.resource[0];
+    tt[p.id - 1] += time - p.arrival;
+    p.resource.erase(p.resource.begin());
+    p.arrival = time;
+    p.need_cpu = true;
+}
+
 void Scheduler::scheduling()
 {
 	switch (type)
@@ -334,7 +420,8 @@ void Scheduler::scheduling()
 		rr();
 		break;
 	case 3:
-		sjf();
+		// sjf();
+        sjf_upgrade();
 		break;
 	case 4:
 		srtn();
@@ -401,18 +488,5 @@ void Scheduler::print_output(bool console)
 
 void Scheduler::print_process()
 {
-    process_queue tmp = pq;
-    cout << type << " " << q << endl;
-    while (!tmp.empty()){
-        process p = tmp.top();
-        tmp.pop();
-        cout << "ID: " << p.id << "\nArrival:" << p.arrival << "\n";
-        cout << "CPU: ";
-        for (int i = 0; i < p.cpu.size(); i++)
-            cout << p.cpu[i] << " ";
-        cout << "\nResource: ";
-        for (int i = 0; i < p.resource.size(); i++)
-            cout << p.resource[i] << " ";
-        cout << "\n\n";
-    }
+    pq.print();
 }

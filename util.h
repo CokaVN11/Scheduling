@@ -31,13 +31,38 @@ public :
         turnaround_time = 0;
         need_cpu = true;
     }
+
+    process(const process& p) {
+        // cout << "copy\n";
+        id = p.id;
+        arrival = p.arrival;
+        init = p.init;
+        cpu = p.cpu;
+        resource = p.resource;
+        waiting_time = p.waiting_time;
+        turnaround_time = p.turnaround_time;
+        need_cpu = p.need_cpu;
+        cpu_prior = p.cpu_prior;
+    }
+
     friend bool operator<(const process& a, const process& b) {
         return a.arrival < b.arrival;
     }
     friend bool operator>(const process& a, const process& b) {
         return a.arrival > b.arrival;
     }
-    ~process() {}
+
+    friend ostream& operator<<(ostream& os, const process& p)
+    {
+        os << "Process " << p.id << "\n";
+        os << "Arrival: " << p.arrival << "\n";
+        os << "CPU: ";
+        for (auto i : p.cpu) os << i << " ";
+        os << "\nResource: ";
+        for (auto i : p.resource) os << i << " ";
+        os << "\n";
+        return os;
+    }
 
     static bool cpu_cmp(const process& a, const process& b) {
         if (a.cpu.empty() || b.need_cpu == false)
