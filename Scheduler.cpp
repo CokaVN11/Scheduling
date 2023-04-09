@@ -424,7 +424,8 @@ void Scheduler::scheduling()
         sjf_upgrade();
 		break;
 	case 4:
-		srtn();
+		// srtn();
+        srtn_upgrade();
 		break;
 	default:
 		cout << "Not supported scheduling type.\n";

@@ -1,6 +1,25 @@
 #include "ProcessQueue.h"
 
-void ProcessQueue::push_cpu_prior(const process& p)
+int ProcessQueue::find_least_bigger_cpu(const process &p)
+{
+    int index = -1;
+
+    int left = 0, right = size - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (process_queue[mid].cpu.empty() || p.cpu[0] <= process_queue[mid].cpu[0]) {
+            index = mid;
+            right = mid - 1;
+        }
+        else {
+            left = mid + 1;
+        }
+    }
+
+    return index;
+}
+
+void ProcessQueue::push_cpu_prior(const process &p)
 {
     if (process_queue.empty()) {
         process_queue.push_back(p);
@@ -8,18 +27,25 @@ void ProcessQueue::push_cpu_prior(const process& p)
         return;
     }
 
-    if (process_queue.front().cpu.empty() || p.cpu[0] < process_queue.front().cpu[0]) {
+    if (process_queue.front().cpu.empty() || (!p.cpu.empty() && p.cpu[0] < process_queue.front().cpu[0])) {
         process_queue.push_front(p);
     }
-    else if (!process_queue.back().cpu.empty() && p.cpu[0] >= process_queue.back().cpu[0]) {
+    else if (p.cpu.empty() || !process_queue.back().cpu.empty() && p.cpu[0] >= process_queue.back().cpu[0]) {
         process_queue.push_back(p);
     }
     else {
-        for (int i = 0; i < size; ++i) {
-            if (process_queue[i].cpu.empty() || p.cpu[0] <= process_queue[i].cpu[0]) {
-                process_queue.insert(process_queue.begin() + i, p);
-                break;
-            }
+        // for (int i = 0; i < size; ++i) {
+        //     if (process_queue[i].cpu.empty() || p.cpu[0] <= process_queue[i].cpu[0]) {
+        //         process_queue.insert(process_queue.begin() + i, p);
+        //         break;
+        //     }
+        // }
+        int index = find_least_bigger_cpu(p);
+        if (index != -1)
+            process_queue.insert(process_queue.begin() + index, p);
+        else {
+            cout << "Error: cannot find the index to insert\n";
+            return;
         }
     }
 
