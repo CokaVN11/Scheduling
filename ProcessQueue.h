@@ -3,26 +3,17 @@
 #include <deque>
 #include "util.h"
 
-class ProcessQueue{
-private:
-    struct Node {
-        process value;
-        Node* next = nullptr;
-    };
+struct cpu_cmp {
+    bool operator()(const process& a, const process& b) {
+        if (a.cpu.empty() || b.cpu.empty())
+            return a.cpu.empty() < b.cpu.empty();
+        return a.cpu[0] > b.cpu[0];
+    }
+};
 
-    Node* head;
-    Node* tail;
-    int size = 0;
-
-    void push_cpu_prior(const process& p);
-    void push_arrival_prior(const process& p);
+class ProcessQueue : public std::priority_queue<process, std::vector<process>, std::greater<process>> {
 public:
-    ProcessQueue();
-    ~ProcessQueue();
     void push(const process& p, bool cpu_prior = false);
-    process top();
-    void pop();
-    bool empty();
     void print();
 };
 

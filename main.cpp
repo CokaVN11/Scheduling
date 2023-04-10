@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     check_argv(argc, argv);
     Scheduler scheduler(argv[1], argv[2]);
     scheduler.read_input();
-    scheduler.print_process();
+    // scheduler.print_process();
     scheduler.scheduling();
     scheduler.print_output();
     scheduler.print_output(true);

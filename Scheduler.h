@@ -18,9 +18,7 @@ private:
 	void fcfs();
 	void rr();
 	void sjf();
-	void sjf_upgrade();
 	void srtn();
-	void srtn_upgrade();
 
 	void resource_schedule(process& p, int& time);
 
