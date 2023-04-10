@@ -21,59 +21,30 @@ int ProcessQueue::find_least_bigger_cpu(const process &p)
 
 void ProcessQueue::push_cpu_prior(const process &p)
 {
-    if (process_queue.empty()) {
-        process_queue.push_back(p);
-        ++size;
-        return;
-    }
-
-    if (process_queue.front().cpu.empty() || (!p.cpu.empty() && p.cpu[0] < process_queue.front().cpu[0])) {
-        process_queue.push_front(p);
-    }
-    else if (p.cpu.empty() || !process_queue.back().cpu.empty() && p.cpu[0] >= process_queue.back().cpu[0]) {
-        process_queue.push_back(p);
-    }
-    else {
-        // for (int i = 0; i < size; ++i) {
-        //     if (process_queue[i].cpu.empty() || p.cpu[0] <= process_queue[i].cpu[0]) {
-        //         process_queue.insert(process_queue.begin() + i, p);
-        //         break;
-        //     }
-        // }
-        int index = find_least_bigger_cpu(p);
-        if (index != -1)
-            process_queue.insert(process_queue.begin() + index, p);
-        else {
-            cout << "Error: cannot find the index to insert\n";
-            return;
-        }
-    }
+    // for (int i = 0; i < size; ++i) {
+    //     if (process_queue[i].cpu.empty() || p.cpu[0] <= process_queue[i].cpu[0]) {
+    //         process_queue.insert(process_queue.begin() + i, p);
+    //         break;
+    //     }
+    // }
+    auto it = lower_bound(process_queue.begin(), process_queue.end(), p, cpu_cmp());
+    int index = it - process_queue.begin();
+    // if (index != -1)
+    //     process_queue.insert(process_queue.begin() + index, p);
+    // else {
+    //     cout << "Error: cannot find the index to insert\n";
+    //     return;
+    // }
+    process_queue.insert(it, p);
 
     ++size;
 }
 
 void ProcessQueue::push_arrival_prior(const process& p)
 {
-    if (process_queue.empty()) {
-        process_queue.push_back(p);
-        ++size;
-        return;
-    }
-
-    if (p.arrival <= process_queue.front().arrival) {
-        process_queue.push_front(p);
-    }
-    else if (p.arrival >= process_queue.back().arrival) {
-        process_queue.push_back(p);
-    }
-    else {
-        for (int i = 0; i < size; ++i) {
-            if (p.arrival <= process_queue[i].arrival) {
-                process_queue.insert(process_queue.begin() + i, p);
-                break;
-            }
-        }
-    }
+    auto it = lower_bound(process_queue.begin(), process_queue.end(), p);
+    int index = it - process_queue.begin();
+    process_queue.insert(it, p);
     ++size;
 }
 

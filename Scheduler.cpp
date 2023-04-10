@@ -24,7 +24,6 @@ void Scheduler::read_input()
 	file >> type;
 	if (type == 2)
 		file >> q;
-	// bool cpu_prior = type == 3 || type == 4;
 	int n = 0;
 	file >> n;
 	for (int i = 0; i < n; i++)

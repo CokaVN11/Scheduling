@@ -63,6 +63,16 @@ public :
     }
 };
 
+struct cpu_cmp {
+    bool operator()(const process& a, const process& b) {
+        if (a.cpu.empty() || b.cpu.empty())
+            return a.arrival < b.arrival;
+        if (a.arrival != b.arrival)
+            return a.arrival < b.arrival;
+        return a.cpu[0] < b.cpu[0];
+    }
+};
+
 typedef priority_queue<process, vector<process>, greater<process>> process_queue;
 
 void read_file(string path, int &type, int &q, process_queue& pq);
