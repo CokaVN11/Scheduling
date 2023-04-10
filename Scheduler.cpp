@@ -220,90 +220,7 @@ void Scheduler::sjf()
     }
 }
 
-void Scheduler::srtn()
-{
-	cout << "SRTN running...\n";
-    int cpu_time = 0;
-    int resource_time = 0;
-
-    CpuQueue ready_queue;
-    while (!pq.empty() || !ready_queue.empty())
-    {
-        while (!pq.empty())
-        {
-            if (!pq.top().need_cpu) break;
-            if (pq.top().arrival > cpu_time) break;
-            ready_queue.push(pq.top());
-            pq.pop();
-        }
-
-        if (ready_queue.empty())
-        {
-            cpu_gantt.push_back(-1);
-            ++cpu_time;
-            continue;
-        }
-
-        process p = ready_queue.top();
-        ready_queue.pop();
-
-        process r = pq.top();
-        pq.pop();
-
-        if (p.cpu.empty() && p.resource.empty()) continue;
-        if (p.need_cpu)
-        {
-            if (p.arrival > cpu_time)
-            {
-                for (int i = 0; i < p.arrival - cpu_time; ++i)
-                    cpu_gantt.push_back(-1);
-                cpu_time = p.arrival;
-            }
-
-            wt[p.id - 1] += abs(cpu_time - p.arrival);
-
-            int process_time = p.cpu[0];
-            if (!ready_queue.empty())
-            {
-                if (ready_queue.top().arrival > cpu_time)
-                {
-                    process_time = min(process_time, ready_queue.top().arrival - cpu_time);
-                }
-            }
-            for (int i = 0; i < process_time; ++i)
-                cpu_gantt.push_back(p.id);
-            cpu_time += process_time;
-            tt[p.id - 1] += cpu_time - p.arrival;
-            p.arrival = cpu_time;
-            // if (p.cpu[0] > 1)
-            // {
-            //     --p.cpu[0];
-            //     ready_queue.push(p);
-            // }
-            // else
-            // {
-            //     p.cpu.erase(p.cpu.begin());
-            //     p.need_cpu = false;
-            //     ready_queue.push(p);
-            // }
-            p.cpu[0] -= process_time;
-            // if the process is not finished,
-            if (p.cpu[0] == 0)
-            {
-                p.cpu.erase(p.cpu.begin());
-                p.need_cpu = false;
-            }
-        }
-        if (!r.need_cpu)
-        {
-            resource_schedule(r, resource_time);
-        }
-        pq.push(p);
-        pq.push(r);
-    }
-}
-
-void Scheduler::srtn_upgrade(){
+void Scheduler::srtn(){
     cout << "SRTN running...\n";
     int cpu_time = 0;
     int resource_time = 0;
@@ -419,7 +336,7 @@ void Scheduler::scheduling()
 		break;
 	case 4:
 		// srtn();
-        srtn_upgrade();
+        srtn();
 		break;
 	default:
 		cout << "Not supported scheduling type.\n";
