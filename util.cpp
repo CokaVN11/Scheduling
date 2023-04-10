@@ -1,42 +1,5 @@
 #include "util.h"
 
-void read_file(string path, int &type, int &q, process_queue &pq)
-{
-    ifstream file(path, ios::in);
-    int n;
-    file >> type;
-    if (type == 2)
-        file >> q;
-    bool cpu_prior = type == 3 || type == 4;
-    file >> n;
-    for (int i = 0; i < n; i++)
-    {
-        process p;
-
-        p.id = i + 1;
-        file >> p.arrival;
-        p.init = p.arrival;
-        p.cpu_prior = cpu_prior;
-
-        string tmp;
-        file.ignore();
-        getline(file, tmp);
-        stringstream ss(tmp);
-
-        int x;
-        while (ss >> x)
-        {
-            p.cpu.push_back(x);
-            if (ss.eof())
-                break;
-            ss >> x;
-            p.resource.push_back(x);
-        }
-
-        pq.push(p);
-    }
-}
-
 void show_usage()
 {
     cout << "Usage: 21127071.exe <input_file> <output_file>\n";

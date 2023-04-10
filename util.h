@@ -65,17 +65,15 @@ public :
     }
 
     static bool cpu_cmp(const process& a, const process& b) {
-        if (a.cpu.empty() || b.need_cpu == false)
-            return false;
-        if (b.cpu.empty() || a.need_cpu == false)
-            return true;
+        if (a.cpu.empty() || b.cpu.empty())
+            return a.cpu.empty() < b.cpu.empty();
+        if (a.cpu[0] == b.cpu[0])
+            return a.arrival > b.arrival;
         return a.cpu[0] > b.cpu[0];
     }
 };
 
-typedef priority_queue<process, vector<process>, greater<process>> process_queue;
 
-void read_file(string path, int &type, int &q, process_queue& pq);
 string print_file(string path);
 void show_usage();
 void check_argv(int argc, char* argv[]);

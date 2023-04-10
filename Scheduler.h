@@ -4,8 +4,23 @@
 #include <fstream>
 #include <functional>
 #include "util.h"
-#include "ProcessQueue.h"
 using namespace std;
+
+struct cpu_cmp {
+	bool operator()(const process& a, const process& b)
+	{
+		if (a.cpu.empty())
+			return true;
+		if (b.cpu.empty())
+			return false;
+		// if (a.arrival != b.arrival)
+		// 	return a.arrival > b.arrival;
+		return a.cpu[0] > b.cpu[0];
+	}
+};
+
+typedef priority_queue<process, vector<process>, greater<process>> ProcessQueue;
+typedef priority_queue<process, vector<process>, cpu_cmp> CpuQueue;
 
 class Scheduler
 {
